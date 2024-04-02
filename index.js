@@ -73,32 +73,32 @@ async function getAllItemNames() {
         )
             .then((res) => res.json())
             .then((res) => res.map((item) => item.market_hash_name)),
-        // fetch(
-        //     "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/agents.json"
-        // )
-        //     .then((res) => res.json())
-        //     .then((res) => res.map((item) => item.market_hash_name)),
-        // fetch(
-        //     "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/keys.json"
-        // )
-        //     .then((res) => res.json())
-        //     .then((res) => res.map((item) => item.market_hash_name)),
-        // fetch(
-        //     "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/patches.json"
-        // )
-        //     .then((res) => res.json())
-        //     .then((res) => res.map((item) => item.market_hash_name)),
-        // fetch(
-        //     "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/graffiti.json"
-        // )
-        //     .then((res) => res.json())
-        //     .then((res) => res.map((item) => item.market_hash_name)),
-        // fetch(
-        //     "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/music_kits.json"
-        // )
-        //     .then((res) => res.json())
-        //     .then((res) => res.map((item) => item.market_hash_name)),
-    ]).then((results) => results.flat().splice(0, 1000)); // Test only with 1000 items.
+        fetch(
+            "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/agents.json"
+        )
+            .then((res) => res.json())
+            .then((res) => res.map((item) => item.market_hash_name)),
+        fetch(
+            "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/keys.json"
+        )
+            .then((res) => res.json())
+            .then((res) => res.map((item) => item.market_hash_name)),
+        fetch(
+            "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/patches.json"
+        )
+            .then((res) => res.json())
+            .then((res) => res.map((item) => item.market_hash_name)),
+        fetch(
+            "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/graffiti.json"
+        )
+            .then((res) => res.json())
+            .then((res) => res.map((item) => item.market_hash_name)),
+        fetch(
+            "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/music_kits.json"
+        )
+            .then((res) => res.json())
+            .then((res) => res.map((item) => item.market_hash_name)),
+    ]).then((results) => results.flat());
 }
 
 async function fetchPrice(name) {
@@ -149,8 +149,8 @@ async function processBatch(batch) {
                     };
                     const hashedName = sha1(name);
                     // TODO: Try to save all data prices.
-                    // For testing purposes just add the last 50 prices.
-                    const filteredPrices = prices.splice(-50);
+                    // For testing purposes just add the last 20 prices.
+                    const filteredPrices = prices.splice(-20);
                     return fs.writeFile(
                         `${dir}/pricehistory/${hashedName}.json`,
                         JSON.stringify(filteredPrices, null, 4),

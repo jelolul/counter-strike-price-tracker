@@ -2,6 +2,7 @@ const SteamCommunity = require("steamcommunity");
 const fs = require("fs");
 const sha1 = require("sha1");
 const dir = `./static`;
+const dirPrices = `./static/prices`;
 const dirPricehistory = `./static/pricehistory`;
 
 if (process.argv.length != 4) {
@@ -13,6 +14,10 @@ if (process.argv.length != 4) {
 
 if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir);
+}
+
+if (!fs.existsSync(dirPrices)) {
+    fs.mkdirSync(dirPrices);
 }
 
 if (!fs.existsSync(dirPricehistory)) {
@@ -43,7 +48,7 @@ community.login(
 
             // Save price data to one json file
             fs.writeFile(
-                `${dir}/prices.json`,
+                `${dirPrices}/latest.json`,
                 JSON.stringify(priceDataByItemHashName, null, 4),
                 (err) => err && console.error(err)
             );
@@ -135,27 +140,17 @@ async function processBatch(batch) {
             .then((prices) => {
                 if (prices.length) {
                     priceDataByItemHashName[name] = {
-                        history_last_7_days: prices.filter((item) => {
-                            const now = new Date();
-                            // Calculate the timestamp for 7 days ago
-                            const sevenDaysAgo = new Date(
-                                now.getFullYear(),
-                                now.getMonth(),
-                                now.getDate() - 7
-                            ).getTime();
-
-                            return item.time > sevenDaysAgo;
-                        }),
+                        steam: getMedianPrice(prices),
                     };
-                    const hashedName = sha1(name);
-                    // TODO: Try to save all data prices.
-                    // For testing purposes just add the last 20 prices.
-                    const filteredPrices = prices.splice(-20);
-                    return fs.writeFile(
-                        `${dir}/pricehistory/${hashedName}.json`,
-                        JSON.stringify(filteredPrices, null, 4),
-                        (err) => err && console.error(err)
-                    );
+                    // const hashedName = sha1(name);
+                    // // TODO: Try to save all data prices.
+                    // // For testing purposes just add the last 10 prices.
+                    // const filteredPrices = prices.splice(-10);
+                    // return fs.writeFile(
+                    //     `${dir}/pricehistory/${hashedName}.json`,
+                    //     JSON.stringify(filteredPrices, null, 4),
+                    //     (err) => err && console.error(err)
+                    // );
                 }
             })
             .catch((error) => console.log(`Error processing ${name}:`, error))
@@ -165,11 +160,12 @@ async function processBatch(batch) {
 
 async function processItems(items, batchSize = 10) {
     // Calculate delay based on rate limit
-    const requestsPerMinute = 600;
+    // const requestsPerMinute = 600;
     // Calculate delay needed after each batch to adhere to the rate limit
     // Note: If batchSize is larger than the rate limit, this will result in a negative delay,
     // which should be handled as well (e.g., by setting a minimum batchSize or adjusting the logic accordingly).
-    const delayPerBatch = (60 / requestsPerMinute) * batchSize * 1000; // Convert to milliseconds
+    // const delayPerBatch = (60 / requestsPerMinute) * batchSize * 1000; // Convert to milliseconds
+    const delayPerBatch = 0; // Convert to milliseconds
 
     for (let i = 0; i < items.length; i += batchSize) {
         const batch = items.slice(i, i + batchSize);
@@ -190,4 +186,33 @@ async function processItems(items, batchSize = 10) {
             await new Promise((resolve) => setTimeout(resolve, delayPerBatch));
         }
     }
+}
+
+function getMedianPrice(data) {
+    const now = Date.now();
+
+    // Helper function to filter data based on time range (in days)
+    const filterByTime = (days) => {
+        const limit = now - days * 24 * 60 * 60 * 1000;
+        return data
+            .filter(({ time }) => time >= limit)
+            .map((item) => item.value)
+            .sort((a, b) => a - b);
+    };
+
+    // Helper function to calculate median
+    const calculateMedian = (values) => {
+        if (values.length === 0) return 0;
+        const mid = Math.floor(values.length / 2);
+        return values.length % 2 === 0
+            ? (values[mid - 1] + values[mid]) / 2
+            : values[mid];
+    };
+
+    return {
+        last_24h: calculateMedian(filterByTime(1)),
+        last_7d: calculateMedian(filterByTime(7)),
+        last_30d: calculateMedian(filterByTime(30)),
+        last_90d: calculateMedian(filterByTime(90)),
+    };
 }

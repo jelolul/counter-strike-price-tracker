@@ -98,7 +98,7 @@ async function getAllItemNames() {
         // )
         //     .then((res) => res.json())
         //     .then((res) => res.map((item) => item.market_hash_name)),
-    ]).then((results) => results.flat());
+    ]).then((results) => results.flat().splice(0, 1000)); // Test only with 1000 items.
 }
 
 async function fetchPrice(name) {

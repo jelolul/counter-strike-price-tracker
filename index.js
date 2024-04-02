@@ -63,31 +63,31 @@ async function getAllItemNames() {
         )
             .then((res) => res.json())
             .then((res) => res.map((item) => item.market_hash_name)),
-        fetch(
-            "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/agents.json"
-        )
-            .then((res) => res.json())
-            .then((res) => res.map((item) => item.market_hash_name)),
-        fetch(
-            "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/keys.json"
-        )
-            .then((res) => res.json())
-            .then((res) => res.map((item) => item.market_hash_name)),
-        fetch(
-            "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/patches.json"
-        )
-            .then((res) => res.json())
-            .then((res) => res.map((item) => item.market_hash_name)),
-        fetch(
-            "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/graffiti.json"
-        )
-            .then((res) => res.json())
-            .then((res) => res.map((item) => item.market_hash_name)),
-        fetch(
-            "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/music_kits.json"
-        )
-            .then((res) => res.json())
-            .then((res) => res.map((item) => item.market_hash_name)),
+        // fetch(
+        //     "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/agents.json"
+        // )
+        //     .then((res) => res.json())
+        //     .then((res) => res.map((item) => item.market_hash_name)),
+        // fetch(
+        //     "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/keys.json"
+        // )
+        //     .then((res) => res.json())
+        //     .then((res) => res.map((item) => item.market_hash_name)),
+        // fetch(
+        //     "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/patches.json"
+        // )
+        //     .then((res) => res.json())
+        //     .then((res) => res.map((item) => item.market_hash_name)),
+        // fetch(
+        //     "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/graffiti.json"
+        // )
+        //     .then((res) => res.json())
+        //     .then((res) => res.map((item) => item.market_hash_name)),
+        // fetch(
+        //     "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/music_kits.json"
+        // )
+        //     .then((res) => res.json())
+        //     .then((res) => res.map((item) => item.market_hash_name)),
     ]).then((results) => results.flat());
 }
 
@@ -139,7 +139,7 @@ async function processBatch(batch) {
 
 async function processItems(items, batchSize = 10) {
     // Calculate delay based on rate limit
-    const requestsPerMinute = 60;
+    const requestsPerMinute = 69;
     // Calculate delay needed after each batch to adhere to the rate limit
     // Note: If batchSize is larger than the rate limit, this will result in a negative delay,
     // which should be handled as well (e.g., by setting a minimum batchSize or adjusting the logic accordingly).

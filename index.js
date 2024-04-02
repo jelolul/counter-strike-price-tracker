@@ -4,6 +4,9 @@ const fs = require("fs");
 const dir = `./static`;
 const dirPrices = `./static/prices`;
 const dirPricehistory = `./static/pricehistory`;
+const ITEMS_API_BASE_URL =
+    "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en";
+const MARKET_BASE_URL = "https://steamcommunity.com/market";
 
 if (process.argv.length != 4) {
     console.error(
@@ -63,44 +66,28 @@ const priceDataByItemHashName = {};
 
 async function getAllItemNames() {
     return Promise.all([
-        fetch(
-            "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/skins_not_grouped.json"
-        )
+        fetch(`${ITEMS_API_BASE_URL}/skins_not_grouped.json`)
             .then((res) => res.json())
             .then((res) => res.map((item) => item.market_hash_name)),
-        fetch(
-            "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/stickers.json"
-        )
+        fetch(`${ITEMS_API_BASE_URL}/stickers.json`)
             .then((res) => res.json())
             .then((res) => res.map((item) => item.market_hash_name)),
-        fetch(
-            "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/crates.json"
-        )
+        fetch(`${ITEMS_API_BASE_URL}/crates.json`)
             .then((res) => res.json())
             .then((res) => res.map((item) => item.market_hash_name)),
-        fetch(
-            "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/agents.json"
-        )
+        fetch(`${ITEMS_API_BASE_URL}/agents.json`)
             .then((res) => res.json())
             .then((res) => res.map((item) => item.market_hash_name)),
-        fetch(
-            "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/keys.json"
-        )
+        fetch(`${ITEMS_API_BASE_URL}/keys.json`)
             .then((res) => res.json())
             .then((res) => res.map((item) => item.market_hash_name)),
-        fetch(
-            "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/patches.json"
-        )
+        fetch(`${ITEMS_API_BASE_URL}/patches.json`)
             .then((res) => res.json())
             .then((res) => res.map((item) => item.market_hash_name)),
-        fetch(
-            "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/graffiti.json"
-        )
+        fetch(`${ITEMS_API_BASE_URL}/graffiti.json`)
             .then((res) => res.json())
             .then((res) => res.map((item) => item.market_hash_name)),
-        fetch(
-            "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/music_kits.json"
-        )
+        fetch(`${ITEMS_API_BASE_URL}/music_kits.json`)
             .then((res) => res.json())
             .then((res) => res.map((item) => item.market_hash_name)),
     ]).then((results) => results.flat());
@@ -109,7 +96,7 @@ async function getAllItemNames() {
 async function fetchPrice(name) {
     return new Promise((resolve, reject) => {
         community.request.get(
-            `https://steamcommunity.com/market/pricehistory/?appid=730&market_hash_name=${encodeURI(
+            `${MARKET_BASE_URL}/pricehistory/?appid=730&market_hash_name=${encodeURI(
                 name
             )}`,
             (err, res) => {
@@ -142,15 +129,15 @@ async function processBatch(batch) {
                     steam: getWeightedAveragePrice(prices),
                 };
                 if (prices.length) {
-                    // const hashedName = sha1(name);
-                    // // TODO: Try to save all data prices.
-                    // // For testing purposes just add the last 10 prices.
-                    // const filteredPrices = prices.splice(-10);
-                    // return fs.writeFile(
-                    //     `${dir}/pricehistory/${hashedName}.json`,
-                    //     JSON.stringify(filteredPrices, null, 4),
-                    //     (err) => err && console.error(err)
-                    // );
+                    const hashedName = sha1(name);
+                    // TODO: Try to save all data prices.
+                    // For testing purposes just add the last 10 prices.
+                    const filteredPrices = prices.splice(-10);
+                    return fs.writeFile(
+                        `${dir}/pricehistory/${hashedName}.json`,
+                        JSON.stringify(filteredPrices, null, 4),
+                        (err) => err && console.error(err)
+                    );
                 }
             })
             .catch((error) => console.log(`Error processing ${name}:`, error))

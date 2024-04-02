@@ -1,6 +1,6 @@
 const SteamCommunity = require("steamcommunity");
 const fs = require("fs");
-const sha1 = require("sha1");
+// const sha1 = require("js-sha1");
 const dir = `./static`;
 const dirPrices = `./static/prices`;
 const dirPricehistory = `./static/pricehistory`;

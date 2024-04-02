@@ -40,11 +40,21 @@ community.login(
             const items = await getAllItemNames();
             console.log(`Processing ${items.length} items.`);
             await processItems(items);
+
+            // Save price data to one json file
+            fs.writeFile(
+                `${dir}/prices.json`,
+                JSON.stringify(priceDataByItemHashName, null, 4),
+                (err) => err && console.error(err)
+            );
         } catch (error) {
             console.error("An error occurred while processing items:", error);
         }
     }
 );
+
+// Price data by item hash name
+const priceDataByItemHashName = {};
 
 async function getAllItemNames() {
     return Promise.all([
@@ -103,7 +113,7 @@ async function fetchPrice(name) {
                     return;
                 }
                 try {
-                    const prices = JSON.parse(res.body).prices.map(
+                    const prices = (JSON.parse(res.body)?.prices ?? []).map(
                         ([time, value, volume]) => ({
                             time: Date.parse(time),
                             value,
@@ -124,10 +134,26 @@ async function processBatch(batch) {
         fetchPrice(name)
             .then((prices) => {
                 if (prices.length) {
+                    priceDataByItemHashName[name] = {
+                        history_last_7_days: prices.filter((item) => {
+                            const now = new Date();
+                            // Calculate the timestamp for 7 days ago
+                            const sevenDaysAgo = new Date(
+                                now.getFullYear(),
+                                now.getMonth(),
+                                now.getDate() - 7
+                            ).getTime();
+
+                            return item.time > sevenDaysAgo;
+                        }),
+                    };
                     const hashedName = sha1(name);
+                    // TODO: Try to save all data prices.
+                    // For testing purposes just add the last 50 prices.
+                    const filteredPrices = prices.splice(-50);
                     return fs.writeFile(
                         `${dir}/pricehistory/${hashedName}.json`,
-                        JSON.stringify(prices, null, 4),
+                        JSON.stringify(filteredPrices, null, 4),
                         (err) => err && console.error(err)
                     );
                 }
@@ -139,7 +165,7 @@ async function processBatch(batch) {
 
 async function processItems(items, batchSize = 10) {
     // Calculate delay based on rate limit
-    const requestsPerMinute = 300;
+    const requestsPerMinute = 600;
     // Calculate delay needed after each batch to adhere to the rate limit
     // Note: If batchSize is larger than the rate limit, this will result in a negative delay,
     // which should be handled as well (e.g., by setting a minimum batchSize or adjusting the logic accordingly).

@@ -131,8 +131,8 @@ async function processBatch(batch) {
                 if (prices.length) {
                     const hashedName = sha1(name);
                     // TODO: Try to save all data prices.
-                    // For testing purposes just add the last 10 prices.
-                    const filteredPrices = prices.splice(-10);
+                    // For testing purposes just add the last 500 prices.
+                    const filteredPrices = prices.splice(-500);
                     return fs.writeFile(
                         `${dir}/pricehistory/${hashedName}.json`,
                         JSON.stringify(filteredPrices, null, 4),

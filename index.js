@@ -139,7 +139,7 @@ async function processBatch(batch) {
 
 async function processItems(items, batchSize = 10) {
     // Calculate delay based on rate limit
-    const requestsPerMinute = 69;
+    const requestsPerMinute = 300;
     // Calculate delay needed after each batch to adhere to the rate limit
     // Note: If batchSize is larger than the rate limit, this will result in a negative delay,
     // which should be handled as well (e.g., by setting a minimum batchSize or adjusting the logic accordingly).

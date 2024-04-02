@@ -118,7 +118,7 @@ async function fetchPrice(name) {
                     return;
                 }
                 try {
-                    const prices = (JSON.parse(res.body)?.prices ?? []).map(
+                    const prices = (JSON.parse(res.body).prices || []).map(
                         ([time, value, volume]) => ({
                             time: Date.parse(time),
                             value,
@@ -138,10 +138,10 @@ async function processBatch(batch) {
     const promises = batch.map((name) =>
         fetchPrice(name)
             .then((prices) => {
+                priceDataByItemHashName[name] = {
+                    steam: getMedianPrice(prices),
+                };
                 if (prices.length) {
-                    priceDataByItemHashName[name] = {
-                        steam: getMedianPrice(prices),
-                    };
                     // const hashedName = sha1(name);
                     // // TODO: Try to save all data prices.
                     // // For testing purposes just add the last 10 prices.
@@ -202,7 +202,7 @@ function getMedianPrice(data) {
 
     // Helper function to calculate median
     const calculateMedian = (values) => {
-        if (values.length === 0) return 0;
+        if (values.length === 0) return null;
         const mid = Math.floor(values.length / 2);
         return values.length % 2 === 0
             ? (values[mid - 1] + values[mid]) / 2

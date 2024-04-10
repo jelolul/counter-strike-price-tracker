@@ -135,7 +135,7 @@ async function processBatch(batch) {
                     const filteredPrices = prices.splice(-500);
                     return fs.writeFile(
                         `${dir}/pricehistory/${hashedName}.json`,
-                        JSON.stringify(filteredPrices, null, 4),
+                        JSON.stringify(filteredPrices),
                         (err) => err && console.error(err)
                     );
                 }

@@ -90,6 +90,9 @@ async function getAllItemNames() {
         fetch(`${ITEMS_API_BASE_URL}/music_kits.json`)
             .then((res) => res.json())
             .then((res) => res.map((item) => item.market_hash_name)),
+        fetch(`${ITEMS_API_BASE_URL}/collectibles.json`)
+            .then((res) => res.json())
+            .then((res) => res.map((item) => item.market_hash_name)),
     ]).then((results) => results.flat().filter(Boolean));
 }
 

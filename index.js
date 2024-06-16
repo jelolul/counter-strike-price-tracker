@@ -99,7 +99,7 @@ async function getAllItemNames() {
 async function fetchPrice(name) {
     return new Promise((resolve, reject) => {
         community.request.get(
-            `${MARKET_BASE_URL}/pricehistory/?appid=730&market_hash_name=${encodeURI(
+            `${MARKET_BASE_URL}/pricehistory/?appid=730&market_hash_name=${encodeURIComponent(
                 name
             )}`,
             (err, res) => {

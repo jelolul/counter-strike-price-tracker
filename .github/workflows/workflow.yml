@@ -2,7 +2,7 @@ name: Update CS Prices
 
 on:
     schedule:
-        - cron: "0 12 * * *"
+        - cron: "0 */6 * * *"
 
     workflow_dispatch:
 
@@ -11,7 +11,6 @@ jobs:
         runs-on: ubuntu-latest
 
         permissions:
-            # Give the default GITHUB_TOKEN write permission to commit and push the changed files back to the repository.
             contents: write
 
         steps:

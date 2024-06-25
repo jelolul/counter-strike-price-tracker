@@ -161,9 +161,13 @@ async function processBatch(batch) {
     await Promise.all(promises);
 }
 
-async function processItems(items, batchSize = 30) {
-    // Calculate delay per batch to process 30 batches per minute
-    const delayPerBatch = 60 * 1000 / 30; // 60 seconds per minute divided by 30 batches
+async function processItems(items, batchSize = 1) {
+    // Calculate delay based on rate limit
+    const requestsPerMinute = 30;
+    // Calculate delay needed after each batch to adhere to the rate limit
+    // Note: If batchSize is larger than the rate limit, this will result in a negative delay,
+    // which should be handled as well (e.g., by setting a minimum batchSize or adjusting the logic accordingly).
+    const delayPerBatch = (60 / requestsPerMinute) * batchSize * 1000; // Convert to milliseconds
 
     for (let i = 0; i < items.length; i += batchSize) {
         const batch = items.slice(i, i + batchSize);
@@ -174,12 +178,12 @@ async function processItems(items, batchSize = 30) {
             )}`
         );
 
-        // Add a delay to process the next batch
+        // Add a delay to respect the rate limit, only if there are more batches to process
         if (i + batchSize < items.length) {
             console.log(
                 `Waiting for ${
                     delayPerBatch / 1000
-                } seconds to process the next batch...`
+                } seconds to respect rate limit...`
             );
             await new Promise((resolve) => setTimeout(resolve, delayPerBatch));
         }

@@ -115,7 +115,7 @@ async function fetchPrice(name) {
                                 name
                             )}`
                         );
-                        resolve([]);
+                        resolve({ prices: [], lastEver: null });
                     }
 
                     const prices = (JSON.parse(res.body).prices || []).map(
@@ -125,7 +125,10 @@ async function fetchPrice(name) {
                             volume: parseInt(volume),
                         })
                     );
-                    resolve(prices);
+                    resolve({
+                        prices,
+                        lastEver: prices.length > 0 ? prices[prices.length - 1].value : null
+                    });
                 } catch (parseError) {
                     reject(parseError);
                 }
@@ -137,10 +140,10 @@ async function fetchPrice(name) {
 async function processBatch(batch) {
     const promises = batch.map((name) =>
         fetchPrice(name)
-            .then((prices) => {
+            .then(({ prices, lastEver }) => {
                 if (prices.length > 0) {
                     priceDataByItemHashName[name] = {
-                        steam: getWeightedAveragePrice(prices),
+                        steam: getWeightedAveragePrice(prices, lastEver)
                     };
                     const hashedName = sha1(name);
                     // TODO: Try to save all data prices.
@@ -216,7 +219,7 @@ async function processItems(items, batchSize = 1) {
 //     };
 // }
 
-function getWeightedAveragePrice(data) {
+function getWeightedAveragePrice(data, lastEver) {
     const now = Date.now();
 
     // Helper function to calculate WAP for a given time range (in days)
@@ -240,5 +243,6 @@ function getWeightedAveragePrice(data) {
         last_7d: calculateWAP(7),
         last_30d: calculateWAP(30),
         last_90d: calculateWAP(90),
+        last_ever: lastEver
     };
 }

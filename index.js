@@ -167,7 +167,7 @@ async function processItems(items, batchSize = 1) {
     // Calculate delay needed after each batch to adhere to the rate limit
     // Note: If batchSize is larger than the rate limit, this will result in a negative delay,
     // which should be handled as well (e.g., by setting a minimum batchSize or adjusting the logic accordingly).
-    const delayPerBatch = (60 / requestsPerMinute) * batchSize * 1000; // Convert to milliseconds
+    const delayPerBatch = 0 // Convert to milliseconds
 
     for (let i = 0; i < items.length; i += batchSize) {
         const batch = items.slice(i, i + batchSize);
@@ -190,34 +190,34 @@ async function processItems(items, batchSize = 1) {
     }
 }
 
-// function getMedianPrice(data) {
-//     const now = Date.now();
+function getMedianPrice(data) {
+    const now = Date.now();
 
-//     // Helper function to filter data based on time range (in days)
-//     const filterByTime = (days) => {
-//         const limit = now - days * 24 * 60 * 60 * 1000;
-//         return data
-//             .filter(({ time }) => time >= limit)
-//             .map((item) => item.value)
-//             .sort((a, b) => a - b);
-//     };
+    // Helper function to filter data based on time range (in days)
+    const filterByTime = (days) => {
+        const limit = now - days * 24 * 60 * 60 * 1000;
+        return data
+            .filter(({ time }) => time >= limit)
+            .map((item) => item.value)
+            .sort((a, b) => a - b);
+    };
 
-//     // Helper function to calculate median
-//     const calculateMedian = (values) => {
-//         if (values.length === 0) return null;
-//         const mid = Math.floor(values.length / 2);
-//         return values.length % 2 === 0
-//             ? (values[mid - 1] + values[mid]) / 2
-//             : values[mid];
-//     };
+    // Helper function to calculate median
+    const calculateMedian = (values) => {
+        if (values.length === 0) return null;
+        const mid = Math.floor(values.length / 2);
+        return values.length % 2 === 0
+            ? (values[mid - 1] + values[mid]) / 2
+            : values[mid];
+    };
 
-//     return {
-//         last_24h: calculateMedian(filterByTime(1)),
-//         last_7d: calculateMedian(filterByTime(7)),
-//         last_30d: calculateMedian(filterByTime(30)),
-//         last_90d: calculateMedian(filterByTime(90)),
-//     };
-// }
+    return {
+        last_24h: calculateMedian(filterByTime(1)),
+        last_7d: calculateMedian(filterByTime(7)),
+        last_30d: calculateMedian(filterByTime(30)),
+        last_90d: calculateMedian(filterByTime(90)),
+    };
+}
 
 function getWeightedAveragePrice(data, lastEver) {
     const now = Date.now();

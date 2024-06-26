@@ -7,6 +7,12 @@ const dirPricehistory = `./static/pricehistory`;
 const ITEMS_API_BASE_URL =
     "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en";
 const MARKET_BASE_URL = "https://steamcommunity.com/market";
+const STATE_FILE = "state.json";
+
+const START_TIME = Date.now();
+const MAX_DURATION = 3600 * 1000 * 5.9;
+
+let errorFound = false;
 
 if (process.argv.length != 4) {
     console.error(
@@ -47,12 +53,26 @@ community.login(
             console.log("Loading items...");
             const items = await getAllItemNames();
             console.log(`Processing ${items.length} items.`);
-            await processItems(items);
+            const state = loadState();
+            const lastIndex = (state.lastIndex || 0) % items.length;
+            await processItems(items.slice(lastIndex), lastIndex);
+
+            const prices = await loadPrices();
+            const newPrices = {
+                ...prices,
+                ...priceDataByItemHashName,
+            };
+            const orderedNewPrices = Object.keys(newPrices)
+                .sort()
+                .reduce((acc, key) => {
+                    acc[key] = newPrices[key];
+                    return acc;
+                }, {});
 
             // Save price data to one json file
             fs.writeFile(
                 `${dirPrices}/latest.json`,
-                JSON.stringify(priceDataByItemHashName, null, 4),
+                JSON.stringify(orderedNewPrices, null, 4),
                 (err) => err && console.error(err)
             );
         } catch (error) {
@@ -63,6 +83,26 @@ community.login(
 
 // Price data by item hash name
 const priceDataByItemHashName = {};
+
+function loadPrices() {
+    if (fs.existsSync(`${dirPrices}/latest.json`)) {
+        const data = fs.readFileSync(`${dirPrices}/latest.json`);
+        return JSON.parse(data);
+    }
+    return {};
+}
+
+function loadState() {
+    if (fs.existsSync(STATE_FILE)) {
+        const data = fs.readFileSync(STATE_FILE);
+        return JSON.parse(data);
+    }
+    return {};
+}
+
+function saveState(state) {
+    fs.writeFileSync(STATE_FILE, JSON.stringify(state));
+}
 
 async function getAllItemNames() {
     return Promise.all([
@@ -108,8 +148,13 @@ async function fetchPrice(name) {
                     return;
                 }
                 try {
-                    if (res.statusCode > 400) {
-                        console.log('[ERROR]', res.statusCode, res.statusMessage);
+                    if (res.statusCode == 429) {
+                        errorFound = true;
+                        console.log(
+                            "[ERROR]",
+                            res.statusCode,
+                            res.statusMessage
+                        );
                         console.log(
                             `${MARKET_BASE_URL}/pricehistory/?appid=730&market_hash_name=${encodeURIComponent(
                                 name
@@ -161,22 +206,36 @@ async function processBatch(batch) {
     await Promise.all(promises);
 }
 
-async function processItems(items, batchSize = 1) {
+async function processItems(items, startIndex, batchSize = 1) {
     // Calculate delay based on rate limit
-    const requestsPerMinute = 30;
+    const requestsPerMinute = 20;
     // Calculate delay needed after each batch to adhere to the rate limit
     // Note: If batchSize is larger than the rate limit, this will result in a negative delay,
     // which should be handled as well (e.g., by setting a minimum batchSize or adjusting the logic accordingly).
     const delayPerBatch = (60 / requestsPerMinute) * batchSize * 1000; // Convert to milliseconds
 
     for (let i = 0; i < items.length; i += batchSize) {
+        const currentTime = Date.now();
+        if (currentTime - START_TIME >= MAX_DURATION) {
+            console.log("Max duration reached. Stopping the process.");
+            saveState({ lastIndex: startIndex + i });
+            return;
+        }
+
         const batch = items.slice(i, i + batchSize);
         await processBatch(batch);
+
+        if (errorFound) {
+            return;
+        }
+
         console.log(
             `Processed batch ${i / batchSize + 1}/${Math.ceil(
                 items.length / batchSize
             )}`
         );
+
+        saveState({ lastIndex: startIndex + i + batchSize });
 
         // Add a delay to respect the rate limit, only if there are more batches to process
         if (i + batchSize < items.length) {
@@ -190,41 +249,11 @@ async function processItems(items, batchSize = 1) {
     }
 }
 
-function getMedianPrice(data) {
-    const now = Date.now();
-
-    // Helper function to filter data based on time range (in days)
-    const filterByTime = (days) => {
-        const limit = now - days * 24 * 60 * 60 * 1000;
-        return data
-            .filter(({ time }) => time >= limit)
-            .map((item) => item.value)
-            .sort((a, b) => a - b);
-    };
-
-    // Helper function to calculate median
-    const calculateMedian = (values) => {
-        if (values.length === 0) return null;
-        const mid = Math.floor(values.length / 2);
-        return values.length % 2 === 0
-            ? (values[mid - 1] + values[mid]) / 2
-            : values[mid];
-    };
-
-    return {
-        last_24h: calculateMedian(filterByTime(1)),
-        last_7d: calculateMedian(filterByTime(7)),
-        last_30d: calculateMedian(filterByTime(30)),
-        last_90d: calculateMedian(filterByTime(90)),
-    };
-}
-
 function getWeightedAveragePrice(data, lastEver) {
     const now = Date.now();
 
-    // Helper function to calculate WAP for a given time range (in days)
     const calculateWAP = (days) => {
-        const limit = now - days * 24 * 60 * 60 * 1000; // Time limit in milliseconds
+        const limit = now - days * 24 * 60 * 60 * 1000;
         let totalVolume = 0;
         let totalPriceVolumeProduct = 0;
 

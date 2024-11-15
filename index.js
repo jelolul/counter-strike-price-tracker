@@ -10,7 +10,7 @@ const MARKET_BASE_URL = "https://steamcommunity.com/market";
 const STATE_FILE = "state.json";
 
 const START_TIME = Date.now();
-const MAX_DURATION = 3600 * 1000 * 5.9;
+const MAX_DURATION = 3600 * 1000 * 5.5;
 
 let errorFound = false;
 

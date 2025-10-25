@@ -234,7 +234,7 @@ async function processItems(items, startIndex, batchSize = 1) {
         }
 
         const batch = items.slice(i, i + batchSize);
-        await processBatch(batch);
+        // await processBatch(batch);
 
         if (errorFound) {
             return;

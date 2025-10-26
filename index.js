@@ -147,75 +147,67 @@ async function getAllItemNames() {
     ]).then((results) => results.flat().filter(Boolean));
 }
 
-// async function fetchPrice(name) {
-//     return new Promise((resolve, reject) => {
-//         community.request.get(
-//             `${MARKET_BASE_URL}/pricehistory/?appid=730&market_hash_name=${encodeURIComponent(
-//                 name
-//             )}`,
-//             (err, res) => {
-//                 if (err) {
-//                     reject(err);
-//                     return;
-//                 }
-//                 try {
-//                     if (res.statusCode == 429) {
-//                         errorFound = true;
-//                         console.log(
-//                             "[ERROR]",
-//                             res.statusCode,
-//                             res.statusMessage
-//                         );
-//                         console.log(
-//                             `${MARKET_BASE_URL}/pricehistory/?appid=730&market_hash_name=${encodeURIComponent(
-//                                 name
-//                             )}`
-//                         );
-//                         resolve({ prices: [], lastEver: null });
-//                     }
+async function fetchPrice(name) {
+    return new Promise((resolve, reject) => {
+        community.request.get(
+            `${MARKET_BASE_URL}/pricehistory/?appid=730&market_hash_name=${encodeURIComponent(
+                name
+            )}`,
+            (err, res) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                try {
+                    if (res.statusCode == 429) {
+                        errorFound = true;
+                        console.log(
+                            "[ERROR]",
+                            res.statusCode,
+                            res.statusMessage
+                        );
+                        console.log(
+                            `${MARKET_BASE_URL}/pricehistory/?appid=730&market_hash_name=${encodeURIComponent(
+                                name
+                            )}`
+                        );
+                        resolve({ prices: [], lastEver: null });
+                    }
 
-//                     const prices = (JSON.parse(res.body).prices || []).map(
-//                         ([time, value, volume]) => ({
-//                             time: Date.parse(time),
-//                             value,
-//                             volume: parseInt(volume),
-//                         })
-//                     );
-//                     resolve({
-//                         prices,
-//                         lastEver: prices.length > 0 ? prices[prices.length - 1].value : null
-//                     });
-//                 } catch (parseError) {
-//                     reject(parseError);
-//                 }
-//             }
-//         );
-//     });
-// }
+                    const prices = (JSON.parse(res.body).prices || []).map(
+                        ([time, value, volume]) => ({
+                            time: Date.parse(time),
+                            value,
+                            volume: parseInt(volume),
+                        })
+                    );
+                    resolve({
+                        prices,
+                        lastEver: prices.length > 0 ? prices[prices.length - 1].value : null
+                    });
+                } catch (parseError) {
+                    reject(parseError);
+                }
+            }
+        );
+    });
+}
 
-// async function processBatch(batch) {
-//     const promises = batch.map((name) =>
-//         fetchPrice(name)
-//             .then(({ prices, lastEver }) => {
-//                 if (prices.length > 0) {
-//                     priceDataByItemHashName[name] = {
-//                         steam: getWeightedAveragePrice(prices, lastEver)
-//                     };
-//                     const hashedName = sha1(name);
-//                     // TODO: Try to save all data prices.
-//                     // For testing purposes just add the last 500 prices.
-//                     const filteredPrices = prices.splice(-500);
-//                     return fs.writeFile(
-//                         `${dir}/pricehistory/${hashedName}.json`,
-//                         JSON.stringify(filteredPrices),
-//                         (err) => err && console.error(err)
-//                     );
-//                 }
-//             })
-//             .catch((error) => console.log(`Error processing ${name}:`, error))
-//     );
-//     await Promise.all(promises);
-// }
+async function processBatch(batch) {
+    const promises = batch.map((name) =>
+        fetchPrice(name)
+            .then(({ prices, lastEver }) => {
+                if (prices.length > 0) {
+                    priceDataByItemHashName[name] = {
+                        steam: getWeightedAveragePrice(prices, lastEver)
+                    };
+                }
+            })
+            .catch((error) => console.log(`Error processing ${name}:`, error))
+    );
+    await Promise.all(promises);
+}
+
 
 async function processItems(items, startIndex, batchSize = 1) {
     // Calculate delay based on rate limit
@@ -234,7 +226,7 @@ async function processItems(items, startIndex, batchSize = 1) {
         }
 
         const batch = items.slice(i, i + batchSize);
-        // await processBatch(batch);
+        await processBatch(batch);
 
         if (errorFound) {
             return;

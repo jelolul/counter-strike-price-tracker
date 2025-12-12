@@ -28,10 +28,6 @@ if (!fs.existsSync(dirPrices)) {
     fs.mkdirSync(dirPrices);
 }
 
-if (!fs.existsSync(dirPricehistory)) {
-    fs.mkdirSync(dirPricehistory);
-}
-
 let community = new SteamCommunity();
 
 console.log("Logging into Steam community....");

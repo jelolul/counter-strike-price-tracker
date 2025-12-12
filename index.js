@@ -3,7 +3,6 @@ const fs = require("fs");
 const sha1 = require("js-sha1");
 const dir = `./static`;
 const dirPrices = `./static/prices`;
-const dirPricehistory = `./static/pricehistory`;
 const ITEMS_API_BASE_URL =
     "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en";
 const MARKET_BASE_URL = "https://steamcommunity.com/market";
@@ -76,13 +75,17 @@ community.login(
                 (err) => err && console.error(err)
             );
 
+            // =====
+            // This seems to be unnecessary, and would only cause the repo to grow in size over time.
+            // Feel free to fork the repo and uncomment these lines of code.
+            // =====
             // Save price data to one json file with the current date as name (YYYY-MM-DD format).
-            const currentDate = new Date().toISOString().split('T')[0];
-            fs.writeFile(
-                `${dirPrices}/${currentDate}.json`,
-                JSON.stringify(orderedNewPrices, null, 4),
-                (err) => err && console.error(err)
-            );
+            // const currentDate = new Date().toISOString().split('T')[0];
+            // fs.writeFile(
+            //     `${dirPrices}/${currentDate}.json`,
+            //     JSON.stringify(orderedNewPrices, null, 4),
+            //     (err) => err && console.error(err)
+            // );
         } catch (error) {
             console.error("An error occurred while processing items:", error);
         }

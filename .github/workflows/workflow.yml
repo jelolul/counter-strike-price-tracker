@@ -22,6 +22,6 @@ jobs:
               id: current_datetime
               run: echo "CURRENT_DATETIME=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
             - name: Commit & push changes
-              uses: stefanzweifel/git-auto-commit-action@v4
+              uses: stefanzweifel/git-auto-commit-action@v7
               with:
                   commit_message: "Updated CS Prices on ${{ env.CURRENT_DATETIME }}"

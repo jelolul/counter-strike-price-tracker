@@ -32,6 +32,21 @@ let community = new SteamCommunity();
 
 console.log("Logging into Steam community....");
 
+community.request = community.request.defaults({
+    headers: {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "sec-ch-ua": "\"Chromium\";v=\"140\", \"Not=A?Brand\";v=\"24\", \"Google Chrome\";v=\"140\"",
+        "sec-ch-ua-mobile": "?1",
+        "sec-ch-ua-platform": "\"Android\"",
+        "sec-fetch-dest": "document",
+        "sec-fetch-mode": "navigate",
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-user": "?1",
+        "upgrade-insecure-requests": "1"
+    }
+});
+
 community.login(
     {
         accountName: process.argv[2],
@@ -245,8 +260,7 @@ async function processItems(items, startIndex, batchSize = 1) {
         // Add a delay to respect the rate limit, only if there are more batches to process
         if (i + batchSize < items.length) {
             console.log(
-                `Waiting for ${
-                    delayPerBatch / 1000
+                `Waiting for ${delayPerBatch / 1000
                 } seconds to respect rate limit...`
             );
             await new Promise((resolve) => setTimeout(resolve, delayPerBatch));

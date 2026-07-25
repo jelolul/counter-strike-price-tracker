@@ -1,6 +1,6 @@
 {
   "dependencies": {
     "js-sha1": "^0.7.0",
-    "steamcommunity": "^3.49.0"
+    "steamcommunity": "^3.50.3"
   }
 }

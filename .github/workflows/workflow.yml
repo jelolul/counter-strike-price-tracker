@@ -25,3 +25,5 @@ jobs:
               uses: stefanzweifel/git-auto-commit-action@v7
               with:
                   commit_message: "Updated CS Prices on ${{ env.CURRENT_DATETIME }}"
+                  commit_user_name: "github-actions[bot]"
+                  commit_user_email: "41898282+github-actions[bot]@users.noreply.github.com"
